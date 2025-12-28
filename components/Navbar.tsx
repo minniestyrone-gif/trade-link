@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Menu, X, Globe, UserCircle } from 'lucide-react';
 import { Button } from './ui/Button';
 
-export const Navbar: React.FC = () => {
+interface NavbarProps {
+  onAuthOpen: () => void;
+}
+
+export const Navbar: React.FC<NavbarProps> = ({ onAuthOpen }) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -13,7 +17,7 @@ export const Navbar: React.FC = () => {
   }, []);
 
   const navLinks = [
-    { name: 'Home', href: '#home' },
+    { name: 'Home', href: '/' },
     { name: 'Services & Trades', href: '#services' },
     { name: 'Reviews', href: '#testimonials' },
   ];
@@ -26,7 +30,7 @@ export const Navbar: React.FC = () => {
           ${scrolled ? 'bg-black/60 backdrop-blur-xl border border-white/10' : 'bg-transparent'}
         `}>
           {/* Logo */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = '/'}>
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center">
               <Globe className="w-5 h-5 text-white" />
             </div>
@@ -40,6 +44,12 @@ export const Navbar: React.FC = () => {
                 key={link.name} 
                 href={link.href} 
                 className="text-sm font-medium text-gray-400 hover:text-white transition-colors"
+                onClick={(e) => {
+                  if (link.href.startsWith('#')) {
+                    e.preventDefault();
+                    document.getElementById(link.href.substring(1))?.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
               >
                 {link.name}
               </a>
@@ -48,11 +58,11 @@ export const Navbar: React.FC = () => {
 
           {/* Actions */}
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" size="sm" className="gap-2">
+            <Button variant="ghost" size="sm" className="gap-2" onClick={onAuthOpen}>
               <UserCircle className="w-5 h-5" />
               Log In
             </Button>
-            <Button variant="primary" size="sm">
+            <Button variant="primary" size="sm" onClick={onAuthOpen}>
               Get Started
             </Button>
           </div>
@@ -74,15 +84,20 @@ export const Navbar: React.FC = () => {
              <a 
                key={link.name} 
                href={link.href}
-               onClick={() => setMobileOpen(false)}
+               onClick={() => {
+                 setMobileOpen(false);
+                 if (link.href.startsWith('#')) {
+                   document.getElementById(link.href.substring(1))?.scrollIntoView({ behavior: 'smooth' });
+                 }
+               }}
                className="text-lg font-medium text-gray-300 hover:text-white"
              >
                {link.name}
              </a>
           ))}
           <div className="h-px bg-white/10 my-2" />
-          <Button variant="secondary" className="w-full justify-center">Log In</Button>
-          <Button variant="primary" className="w-full justify-center">Get Started</Button>
+          <Button variant="secondary" className="w-full justify-center" onClick={() => { setMobileOpen(false); onAuthOpen(); }}>Log In</Button>
+          <Button variant="primary" className="w-full justify-center" onClick={() => { setMobileOpen(false); onAuthOpen(); }}>Get Started</Button>
         </div>
       )}
     </nav>

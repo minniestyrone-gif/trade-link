@@ -2,6 +2,9 @@ export interface TradePro {
   id: string;
   name: string;
   trade: string;
+  companyName: string;
+  email: string;
+  phone: string;
   rating: number;
   reviews: number;
   hourlyRate?: number;
