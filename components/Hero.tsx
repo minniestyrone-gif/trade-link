@@ -15,7 +15,7 @@ export const Hero: React.FC<HeroProps> = ({ onFindPro }) => {
       <div className="absolute bottom-[0%] right-[-10%] w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none" />
       
       {/* Animation Noodle Light Beams */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-40 z-0" viewBox="0 0 1440 900" fill="none" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-50 z-0" viewBox="0 0 1440 900" fill="none" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
          <defs>
             <linearGradient id="beam-grad-1" x1="0%" y1="0%" x2="100%" y2="0%">
                <stop offset="0%" stopColor="#06b6d4" stopOpacity="0" />
@@ -34,10 +34,24 @@ export const Hero: React.FC<HeroProps> = ({ onFindPro }) => {
             </linearGradient>
          </defs>
          
+         {/* Original horizontal flows */}
          <path d="M-100 100 Q 720 -50 1540 100" stroke="url(#beam-grad-1)" strokeWidth="2" strokeLinecap="round" className="animate-beam" strokeDasharray="500 2000" style={{ animationDuration: '15s' }} />
          <path d="M1540 800 Q 720 950 -100 800" stroke="url(#beam-grad-2)" strokeWidth="2" strokeLinecap="round" className="animate-beam" strokeDasharray="400 2200" style={{ animationDuration: '18s', animationDelay: '-5s' }} />
+         
+         {/* New horizontal flows for depth */}
+         <path d="M-100 450 Q 720 350 1540 450" stroke="url(#beam-grad-1)" strokeWidth="1" strokeLinecap="round" className="animate-beam" strokeDasharray="600 2400" style={{ animationDuration: '12s', animationDelay: '-3s' }} />
+         <path d="M1540 550 Q 720 650 -100 550" stroke="url(#beam-grad-3)" strokeWidth="1.5" strokeLinecap="round" className="animate-beam" strokeDasharray="300 1800" style={{ animationDuration: '20s', animationDelay: '-7s' }} />
+         <path d="M-100 250 Q 720 150 1540 300" stroke="url(#beam-grad-2)" strokeWidth="1" strokeLinecap="round" className="animate-beam opacity-30" strokeDasharray="400 2000" style={{ animationDuration: '14s', animationDelay: '-10s' }} />
+
+         {/* Vertical and Diagonal flows */}
          <path d="M1000 -100 C 1200 300, 1100 600, 1300 1000" stroke="url(#beam-grad-3)" strokeWidth="1.5" strokeLinecap="round" className="animate-beam" strokeDasharray="300 1500" style={{ animationDuration: '12s', animationDelay: '-2s' }} />
+         <path d="M400 -100 C 200 300, 300 600, 100 1000" stroke="url(#beam-grad-1)" strokeWidth="1" strokeLinecap="round" className="animate-beam" strokeDasharray="250 1600" style={{ animationDuration: '16s', animationDelay: '-4s' }} />
          <path d="M-100 900 C 50 600, 50 300, -50 0" stroke="url(#beam-grad-1)" strokeWidth="3" strokeLinecap="round" className="animate-beam" strokeDasharray="200 1800" style={{ animationDuration: '20s', animationDelay: '-8s', opacity: 0.3 }} />
+         <path d="M1500 0 L 0 900" stroke="url(#beam-grad-2)" strokeWidth="1" strokeLinecap="round" className="animate-beam" strokeDasharray="300 2500" style={{ animationDuration: '22s', animationDelay: '-12s' }} />
+         <path d="M0 0 L 1500 900" stroke="url(#beam-grad-3)" strokeWidth="0.5" strokeLinecap="round" className="animate-beam opacity-20" strokeDasharray="200 2000" style={{ animationDuration: '25s', animationDelay: '-1s' }} />
+         
+         {/* Extra accent beams */}
+         <path d="M720 -100 Q 800 450 720 1000" stroke="url(#beam-grad-1)" strokeWidth="0.5" strokeLinecap="round" className="animate-beam opacity-40" strokeDasharray="100 3000" style={{ animationDuration: '10s' }} />
       </svg>
       
       <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">

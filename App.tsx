@@ -103,6 +103,7 @@ function App() {
 
   const handleBack = () => {
     setActiveTradeId(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleAddSpecialist = (tradeId: string, pro: TradePro) => {
@@ -114,7 +115,10 @@ function App() {
 
   return (
     <div className="bg-neutral-950 text-white min-h-screen selection:bg-cyan-500 selection:text-black">
-      <Navbar onAuthOpen={() => setIsAuthOpen(true)} />
+      <Navbar 
+        onAuthOpen={() => setIsAuthOpen(true)} 
+        onHome={handleBack}
+      />
       
       <main className="transition-all duration-500">
         {!activeTradeId ? (

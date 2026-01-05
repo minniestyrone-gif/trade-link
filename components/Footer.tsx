@@ -16,14 +16,24 @@ export const Footer: React.FC = () => {
         <div className="flex gap-8 text-sm text-gray-500">
            <a href="#" className="hover:text-white transition-colors">Terms</a>
            <a href="#" className="hover:text-white transition-colors">Privacy</a>
-           <a href="#" className="hover:text-white transition-colors">Careers</a>
-           <a href="#" className="hover:text-white transition-colors">Support</a>
         </div>
 
         <div className="flex gap-4">
-           <Twitter className="w-5 h-5 text-gray-500 hover:text-white cursor-pointer transition-colors" />
-           <Instagram className="w-5 h-5 text-gray-500 hover:text-white cursor-pointer transition-colors" />
-           <Linkedin className="w-5 h-5 text-gray-500 hover:text-white cursor-pointer transition-colors" />
+           <a href="#" aria-label="Twitter" className="text-gray-500 hover:text-white transition-colors">
+             <Twitter className="w-5 h-5" />
+           </a>
+           <a 
+             href="https://www.instagram.com/tradelink_connect?igsh=bHczanFoazU4ZA==" 
+             target="_blank" 
+             rel="noopener noreferrer" 
+             aria-label="Instagram" 
+             className="text-gray-500 hover:text-white transition-colors"
+           >
+             <Instagram className="w-5 h-5" />
+           </a>
+           <a href="#" aria-label="LinkedIn" className="text-gray-500 hover:text-white transition-colors">
+             <Linkedin className="w-5 h-5" />
+           </a>
         </div>
 
       </div>

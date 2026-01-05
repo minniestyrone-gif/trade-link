@@ -4,9 +4,10 @@ import { Button } from './ui/Button';
 
 interface NavbarProps {
   onAuthOpen: () => void;
+  onHome: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onAuthOpen }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onAuthOpen, onHome }) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -17,10 +18,27 @@ export const Navbar: React.FC<NavbarProps> = ({ onAuthOpen }) => {
   }, []);
 
   const navLinks = [
-    { name: 'Home', href: '/' },
+    { name: 'Home', href: '#' },
     { name: 'Services & Trades', href: '#services' },
     { name: 'Reviews', href: '#testimonials' },
   ];
+
+  const handleLinkClick = (e: React.MouseEvent, href: string) => {
+    e.preventDefault();
+    if (href === '#') {
+      onHome();
+    } else if (href.startsWith('#')) {
+      const target = document.getElementById(href.substring(1));
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        // If target not found (e.g. on subpage), go home first then scroll?
+        // For simplicity, reset to home and scroll to top is better if not found.
+        onHome();
+      }
+    }
+    setMobileOpen(false);
+  };
 
   return (
     <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'py-4' : 'py-6'}`}>
@@ -30,7 +48,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onAuthOpen }) => {
           ${scrolled ? 'bg-black/60 backdrop-blur-xl border border-white/10' : 'bg-transparent'}
         `}>
           {/* Logo */}
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = '/'}>
+          <div className="flex items-center gap-2 cursor-pointer" onClick={onHome}>
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center">
               <Globe className="w-5 h-5 text-white" />
             </div>
@@ -44,12 +62,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onAuthOpen }) => {
                 key={link.name} 
                 href={link.href} 
                 className="text-sm font-medium text-gray-400 hover:text-white transition-colors"
-                onClick={(e) => {
-                  if (link.href.startsWith('#')) {
-                    e.preventDefault();
-                    document.getElementById(link.href.substring(1))?.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }}
+                onClick={(e) => handleLinkClick(e, link.href)}
               >
                 {link.name}
               </a>
@@ -84,12 +97,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onAuthOpen }) => {
              <a 
                key={link.name} 
                href={link.href}
-               onClick={() => {
-                 setMobileOpen(false);
-                 if (link.href.startsWith('#')) {
-                   document.getElementById(link.href.substring(1))?.scrollIntoView({ behavior: 'smooth' });
-                 }
-               }}
+               onClick={(e) => handleLinkClick(e, link.href)}
                className="text-lg font-medium text-gray-300 hover:text-white"
              >
                {link.name}
