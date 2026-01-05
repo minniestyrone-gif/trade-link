@@ -3,14 +3,15 @@ import { Globe, Twitter, Instagram, Linkedin } from 'lucide-react';
 
 interface FooterProps {
   onTermsClick?: () => void;
+  onPrivacyClick?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onTermsClick }) => {
+export const Footer: React.FC<FooterProps> = ({ onTermsClick, onPrivacyClick }) => {
   return (
     <footer className="bg-neutral-950 border-t border-white/5 py-12 px-6">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
         
-        <div className="flex items-center gap-2 group cursor-pointer">
+        <div className="flex items-center gap-2 group cursor-pointer" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})}>
            <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
               <Globe className="w-3 h-3 text-white" />
             </div>
@@ -24,7 +25,12 @@ export const Footer: React.FC<FooterProps> = ({ onTermsClick }) => {
            >
              Terms & Conditions
            </button>
-           <a href="#" className="hover:text-white transition-colors">Privacy</a>
+           <button 
+             onClick={onPrivacyClick} 
+             className="hover:text-white transition-colors focus:outline-none"
+           >
+             Privacy
+           </button>
         </div>
 
         <div className="flex gap-4">

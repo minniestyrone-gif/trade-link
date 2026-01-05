@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Globe, UserCircle } from 'lucide-react';
+import { Menu, X, Globe, UserCircle, LogOut } from 'lucide-react';
 import { Button } from './ui/Button';
 
 interface NavbarProps {
   onAuthOpen: () => void;
   onHome: () => void;
+  user: any;
+  onLogout: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onAuthOpen, onHome }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onAuthOpen, onHome, user, onLogout }) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -43,11 +45,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onAuthOpen, onHome }) => {
       <div className="max-w-7xl mx-auto px-6">
         <div className={`
           flex items-center justify-between px-6 py-3 rounded-full transition-all duration-300
-          ${scrolled ? 'bg-black/60 backdrop-blur-xl border border-white/10' : 'bg-transparent'}
+          ${scrolled ? 'bg-black/60 backdrop-blur-xl border border-white/10 shadow-2xl' : 'bg-transparent'}
         `}>
           {/* Logo */}
           <div className="flex items-center gap-2 cursor-pointer group" onClick={onHome}>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center transition-transform duration-500 group-hover:scale-110 shadow-[0_0_15px_rgba(6,182,212,0.4)]">
               <Globe className="w-5 h-5 text-white" />
             </div>
             <span className="font-bold text-lg tracking-tight text-white group-hover:text-cyan-400 transition-colors">Trade Link</span>
@@ -69,18 +71,37 @@ export const Navbar: React.FC<NavbarProps> = ({ onAuthOpen, onHome }) => {
 
           {/* Actions */}
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" size="sm" className="gap-2" onClick={onAuthOpen}>
-              <UserCircle className="w-5 h-5" />
-              Log In
-            </Button>
-            <Button variant="primary" size="sm" onClick={onAuthOpen}>
-              Get Started
-            </Button>
+            {user ? (
+              <div className="flex items-center gap-4 pl-4 border-l border-white/10">
+                <div className="flex items-center gap-2 group cursor-pointer">
+                  <div className="w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center text-cyan-500">
+                    <UserCircle size={20} />
+                  </div>
+                  <span className="text-sm font-bold text-white max-w-[100px] truncate">{user.name}</span>
+                </div>
+                <button 
+                  onClick={onLogout}
+                  className="p-2 text-gray-500 hover:text-red-400 transition-colors"
+                  title="Log Out"
+                >
+                  <LogOut size={18} />
+                </button>
+              </div>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" className="gap-2" onClick={onAuthOpen}>
+                  Log In
+                </Button>
+                <Button variant="primary" size="sm" onClick={onAuthOpen}>
+                  Get Started
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Toggle */}
           <button 
-            className="md:hidden text-white"
+            className="md:hidden text-white p-1"
             onClick={() => setMobileOpen(!mobileOpen)}
           >
             {mobileOpen ? <X /> : <Menu />}
@@ -102,8 +123,22 @@ export const Navbar: React.FC<NavbarProps> = ({ onAuthOpen, onHome }) => {
              </a>
           ))}
           <div className="h-px bg-white/10 my-2" />
-          <Button variant="secondary" className="w-full justify-center" onClick={() => { setMobileOpen(false); onAuthOpen(); }}>Log In</Button>
-          <Button variant="primary" className="w-full justify-center" onClick={() => { setMobileOpen(false); onAuthOpen(); }}>Get Started</Button>
+          {user ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-3 bg-white/5 rounded-2xl">
+                <UserCircle className="text-cyan-500" />
+                <span className="text-white font-bold">{user.name}</span>
+              </div>
+              <Button variant="outline" className="w-full justify-center gap-2 text-red-400" onClick={() => { onLogout(); setMobileOpen(false); }}>
+                <LogOut size={18} /> Log Out
+              </Button>
+            </div>
+          ) : (
+            <>
+              <Button variant="secondary" className="w-full justify-center" onClick={() => { setMobileOpen(false); onAuthOpen(); }}>Log In</Button>
+              <Button variant="primary" className="w-full justify-center" onClick={() => { setMobileOpen(false); onAuthOpen(); }}>Get Started</Button>
+            </>
+          )}
         </div>
       )}
     </nav>
