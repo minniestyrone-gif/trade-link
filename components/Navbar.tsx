@@ -32,8 +32,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onAuthOpen, onHome }) => {
       if (target) {
         target.scrollIntoView({ behavior: 'smooth' });
       } else {
-        // If target not found (e.g. on subpage), go home first then scroll?
-        // For simplicity, reset to home and scroll to top is better if not found.
         onHome();
       }
     }
@@ -48,11 +46,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onAuthOpen, onHome }) => {
           ${scrolled ? 'bg-black/60 backdrop-blur-xl border border-white/10' : 'bg-transparent'}
         `}>
           {/* Logo */}
-          <div className="flex items-center gap-2 cursor-pointer" onClick={onHome}>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center">
+          <div className="flex items-center gap-2 cursor-pointer group" onClick={onHome}>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
               <Globe className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-lg tracking-tight text-white">Trade Link</span>
+            <span className="font-bold text-lg tracking-tight text-white group-hover:text-cyan-400 transition-colors">Trade Link</span>
           </div>
 
           {/* Desktop Nav */}

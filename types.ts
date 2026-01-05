@@ -1,3 +1,11 @@
+export interface ReviewComment {
+  id: string;
+  user: string;
+  rating: number;
+  comment: string;
+  date: string;
+}
+
 export interface TradePro {
   id: string;
   name: string;
@@ -12,6 +20,7 @@ export interface TradePro {
   availability: 'Available' | 'Busy' | 'Offline';
   imageUrl: string;
   specialty: string;
+  comments: ReviewComment[];
 }
 
 export interface Testimonial {
