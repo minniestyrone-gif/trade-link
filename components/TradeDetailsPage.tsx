@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { ArrowLeft, Plus, User, Phone, Mail, Building2, Star, CheckCircle, X, Search, MessageSquare, Calendar, Camera, Upload } from 'lucide-react';
+import { ArrowLeft, Plus, User, Phone, Mail, Building2, Star, CheckCircle, X, Search, MessageSquare, Calendar, Camera, Upload, CreditCard, ShieldCheck } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Card } from './ui/Card';
 import { TradePro, ReviewComment } from '../types';
@@ -77,7 +77,7 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
     };
     onAdd(tradeId, added);
     setIsAdding(false);
-    showToast("Application submitted for verification!");
+    showToast("Subscription activated! Application submitted.");
     setNewPro({ name: '', company: '', email: '', phone: '', specialty: '', imageUrl: '' });
   };
 
@@ -367,7 +367,7 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
         {/* Registration Modal */}
         {isAdding && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-lg animate-in fade-in zoom-in duration-300">
-             <div className="w-full max-w-lg bg-neutral-900 border border-white/10 rounded-3xl shadow-2xl p-8 relative overflow-hidden">
+             <div className="w-full max-w-xl bg-neutral-900 border border-white/10 rounded-3xl shadow-2xl p-8 relative overflow-y-auto max-h-[90vh]">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 to-blue-500" />
                 <button onClick={() => setIsAdding(false)} className="absolute top-6 right-6 text-gray-500 hover:text-white transition-colors p-2">
                   <X size={24} />
@@ -375,6 +375,23 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
                 <div className="mb-8">
                    <h2 className="text-3xl font-bold text-white mb-2">Expert Application</h2>
                    <p className="text-gray-400">Credential submission for <span className="text-cyan-400 font-bold">{tradeInfo?.title}</span></p>
+                </div>
+
+                {/* Subscription Info Card */}
+                <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-2xl p-6 mb-8 flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-500 shrink-0">
+                    <ShieldCheck size={24} />
+                  </div>
+                  <div>
+                    <h4 className="text-white font-bold mb-1">Premium Business Promotion</h4>
+                    <p className="text-gray-400 text-xs leading-relaxed">
+                      Reach more clients with an elite priority listing. Professionals who subscribe see up to 3x more engagement.
+                    </p>
+                    <div className="mt-3 flex items-center gap-2">
+                       <span className="text-xl font-bold text-white">R300</span>
+                       <span className="text-gray-500 text-xs uppercase tracking-widest">/ monthly subscription</span>
+                    </div>
+                  </div>
                 </div>
                 
                 <form className="space-y-5" onSubmit={handleAddPro}>
@@ -419,11 +436,22 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
                       </div>
                    </div>
 
+                   <div className="space-y-2 pt-2">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Billing Confirmation</label>
+                      <div className="bg-black/40 border border-white/10 rounded-xl p-4 flex items-center justify-between">
+                         <div className="flex items-center gap-3">
+                            <CreditCard className="text-cyan-500" size={18} />
+                            <span className="text-sm text-gray-300">Setup Monthly Billing</span>
+                         </div>
+                         <span className="text-white font-bold text-sm">R300.00</span>
+                      </div>
+                   </div>
+
                    <div className="pt-4 space-y-4">
-                      <Button type="submit" className="w-full py-4 text-lg font-bold shadow-lg shadow-cyan-500/10">Launch Application</Button>
+                      <Button type="submit" className="w-full py-4 text-lg font-bold shadow-lg shadow-cyan-500/10">Subscribe & Launch Application</Button>
                       <div className="flex items-center justify-center gap-2 text-[10px] text-gray-500 uppercase tracking-[0.2em]">
                          <CheckCircle size={12} className="text-cyan-500" />
-                         Syncing with Vetting Subserver
+                         Secure Verification Sync
                       </div>
                    </div>
                 </form>
