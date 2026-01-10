@@ -238,6 +238,8 @@ function App() {
             pros={specialists[activeTradeId] || []}
             onAdd={handleAddSpecialist}
             onReview={handleUpdateProRating}
+            user={user}
+            onAuthOpen={() => setIsAuthOpen(true)}
           />
         )}
 

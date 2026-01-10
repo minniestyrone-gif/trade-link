@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useRef } from 'react';
-import { ArrowLeft, Plus, User, Phone, Mail, Building2, Star, CheckCircle, X, Search, MessageSquare, Calendar, Camera, Upload, CreditCard, ShieldCheck } from 'lucide-react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { ArrowLeft, Plus, User, Phone, Mail, Building2, Star, CheckCircle, X, Search, MessageSquare, Calendar, Camera, Upload, CreditCard, ShieldCheck, LogIn } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Card } from './ui/Card';
 import { TradePro, ReviewComment } from '../types';
@@ -11,9 +11,11 @@ interface TradeDetailsPageProps {
   pros: TradePro[];
   onAdd: (tradeId: string, pro: TradePro) => void;
   onReview: (tradeId: string, proId: string, rating: number, comment?: string) => void;
+  user: any;
+  onAuthOpen: () => void;
 }
 
-export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onBack, pros, onAdd, onReview }) => {
+export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onBack, pros, onAdd, onReview, user, onAuthOpen }) => {
   const tradeInfo = SPECIALIZED_TRADES.find(t => t.id === tradeId);
   const [isAdding, setIsAdding] = useState(false);
   const [reviewingProId, setReviewingProId] = useState<string | null>(null);
@@ -37,6 +39,17 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
     imageUrl: ''
   });
 
+  // Effect to pre-fill user data when registration modal opens or user changes
+  useEffect(() => {
+    if (isAdding && user) {
+      setNewPro(prev => ({
+        ...prev,
+        name: prev.name || user.name || '',
+        email: prev.email || user.email || ''
+      }));
+    }
+  }, [isAdding, user]);
+
   const filteredPros = useMemo(() => {
     return pros.filter(pro => 
       pro.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -55,6 +68,15 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
     setTimeout(() => {
       window.location.href = type === 'call' ? `tel:${value}` : `mailto:${value}`;
     }, 500);
+  };
+
+  const handleJoinClick = () => {
+    if (!user) {
+      onAuthOpen();
+      showToast("Please log in to join as an expert.");
+      return;
+    }
+    setIsAdding(true);
   };
 
   const handleAddPro = (e: React.FormEvent) => {
@@ -103,6 +125,11 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
 
   const handleSubmitReview = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      onAuthOpen();
+      showToast("Please log in to submit a review.");
+      return;
+    }
     if (reviewingProId) {
       onReview(tradeId, reviewingProId, reviewRating, reviewComment);
       setReviewingProId(null);
@@ -169,8 +196,8 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
                  <p className="text-gray-400 mt-2 text-lg">{tradeInfo?.subtitle}</p>
               </div>
            </div>
-           <Button onClick={() => setIsAdding(true)} className="gap-2 px-8">
-             <Plus size={18} /> Join as Expert
+           <Button onClick={handleJoinClick} className="gap-2 px-8">
+             {user ? <Plus size={18} /> : <LogIn size={18} />} Join as Expert
            </Button>
         </div>
 
@@ -252,7 +279,7 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
                <User className="w-16 h-16 text-gray-700 mx-auto mb-4" />
                <h3 className="text-xl font-bold text-gray-300">No experts found</h3>
                <p className="text-gray-500 mt-2">Try adjusting your filter or join as the first pro.</p>
-               <Button variant="ghost" className="mt-6 border border-white/10 hover:bg-white/5" onClick={() => setIsAdding(true)}>Be the first expert</Button>
+               <Button variant="ghost" className="mt-6 border border-white/10 hover:bg-white/5" onClick={handleJoinClick}>Be the first expert</Button>
             </div>
           )}
         </div>
@@ -364,7 +391,7 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
           </div>
         )}
 
-        {/* Registration Modal */}
+        {/* Expert Registration Modal */}
         {isAdding && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-lg animate-in fade-in zoom-in duration-300">
              <div className="w-full max-w-xl bg-neutral-900 border border-white/10 rounded-3xl shadow-2xl p-8 relative overflow-y-auto max-h-[90vh]">
@@ -374,7 +401,9 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
                 </button>
                 <div className="mb-8">
                    <h2 className="text-3xl font-bold text-white mb-2">Expert Application</h2>
-                   <p className="text-gray-400">Credential submission for <span className="text-cyan-400 font-bold">{tradeInfo?.title}</span></p>
+                   <p className="text-gray-400">
+                     Signed in as <span className="text-white font-bold">{user?.name}</span> for <span className="text-cyan-400 font-bold">{tradeInfo?.title}</span>
+                   </p>
                 </div>
 
                 {/* Subscription Info Card */}
@@ -411,7 +440,7 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
 
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Legal Name</label>
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Full Name</label>
                         <input required value={newPro.name} onChange={e => setNewPro({...newPro, name: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-cyan-500 focus:outline-none transition-all placeholder:text-gray-700 shadow-inner" placeholder="John Doe" />
                       </div>
                       <div className="space-y-2">
@@ -437,11 +466,11 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
                    </div>
 
                    <div className="space-y-2 pt-2">
-                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Billing Confirmation</label>
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Subscription Billing</label>
                       <div className="bg-black/40 border border-white/10 rounded-xl p-4 flex items-center justify-between">
                          <div className="flex items-center gap-3">
                             <CreditCard className="text-cyan-500" size={18} />
-                            <span className="text-sm text-gray-300">Setup Monthly Billing</span>
+                            <span className="text-sm text-gray-300">Activate Monthly Plan</span>
                          </div>
                          <span className="text-white font-bold text-sm">R300.00</span>
                       </div>
