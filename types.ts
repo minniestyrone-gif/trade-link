@@ -13,6 +13,7 @@ export interface TradePro {
   companyName: string;
   email: string;
   phone: string;
+  location: string;
   rating: number;
   reviews: number;
   hourlyRate?: number;
@@ -21,6 +22,8 @@ export interface TradePro {
   imageUrl: string;
   specialty: string;
   comments: ReviewComment[];
+  isVerified?: boolean;
+  isSubscriptionActive?: boolean;
 }
 
 export interface Testimonial {

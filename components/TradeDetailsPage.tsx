@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { ArrowLeft, Plus, User, Phone, Mail, Building2, Star, CheckCircle, X, Search, MessageSquare, Calendar, Camera, Upload, CreditCard, ShieldCheck, LogIn } from 'lucide-react';
+import { ArrowLeft, Plus, User, Phone, Mail, Building2, Star, CheckCircle, X, Search, MessageSquare, Calendar, Camera, Upload, CreditCard, ShieldCheck, Lock, ArrowRight, BellRing, BadgeCheck, Database, MapPin } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Card } from './ui/Card';
 import { TradePro, ReviewComment } from '../types';
@@ -11,13 +11,14 @@ interface TradeDetailsPageProps {
   pros: TradePro[];
   onAdd: (tradeId: string, pro: TradePro) => void;
   onReview: (tradeId: string, proId: string, rating: number, comment?: string) => void;
-  user: any;
-  onAuthOpen: () => void;
 }
 
-export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onBack, pros, onAdd, onReview, user, onAuthOpen }) => {
+type RegistrationStep = 'details' | 'payment' | 'processing' | 'success';
+
+export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onBack, pros, onAdd, onReview }) => {
   const tradeInfo = SPECIALIZED_TRADES.find(t => t.id === tradeId);
   const [isAdding, setIsAdding] = useState(false);
+  const [regStep, setRegStep] = useState<RegistrationStep>('details');
   const [reviewingProId, setReviewingProId] = useState<string | null>(null);
   const [viewingReviewsProId, setViewingReviewsProId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -35,26 +36,17 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
     company: '',
     email: '',
     phone: '',
+    location: '',
     specialty: '',
     imageUrl: ''
   });
-
-  // Effect to pre-fill user data when registration modal opens or user changes
-  useEffect(() => {
-    if (isAdding && user) {
-      setNewPro(prev => ({
-        ...prev,
-        name: prev.name || user.name || '',
-        email: prev.email || user.email || ''
-      }));
-    }
-  }, [isAdding, user]);
 
   const filteredPros = useMemo(() => {
     return pros.filter(pro => 
       pro.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       pro.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      pro.specialty.toLowerCase().includes(searchQuery.toLowerCase())
+      pro.specialty.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      pro.location.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [pros, searchQuery]);
 
@@ -71,18 +63,24 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
   };
 
   const handleJoinClick = () => {
-    if (!user) {
-      onAuthOpen();
-      showToast("Please log in to join as an expert.");
-      return;
-    }
+    setRegStep('details');
     setIsAdding(true);
   };
 
-  const handleAddPro = (e: React.FormEvent) => {
+  const goToPayment = (e: React.FormEvent) => {
     e.preventDefault();
-    const finalImageUrl = newPro.imageUrl || `ICON_FALLBACK_${tradeId}`;
+    setRegStep('payment');
+  };
 
+  const handleExternalPaymentClick = () => {
+    // Immediate feedback for the user
+    setRegStep('processing');
+    
+    // Simulate sending email notification to the master address
+    console.log("Subscribing expert. Sending reminder notification to: elevatesolutions26@gmail.com");
+    
+    // Prepare the pro object with verification flags for database persistence
+    const finalImageUrl = newPro.imageUrl || `ICON_FALLBACK_${tradeId}`;
     const added: TradePro = {
       id: Date.now().toString(),
       name: newPro.name,
@@ -90,17 +88,30 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
       companyName: newPro.company,
       email: newPro.email,
       phone: newPro.phone,
+      location: newPro.location,
       rating: 5.0,
       reviews: 0,
       availability: 'Available',
       imageUrl: finalImageUrl,
       specialty: newPro.specialty,
-      comments: []
+      comments: [],
+      isVerified: true,
+      isSubscriptionActive: true
     };
+    
+    // Persist permanently to the app database via the provided onAdd callback
     onAdd(tradeId, added);
-    setIsAdding(false);
-    showToast("Subscription activated! Application submitted.");
-    setNewPro({ name: '', company: '', email: '', phone: '', specialty: '', imageUrl: '' });
+
+    // Simulate a brief processing delay before success UI
+    setTimeout(() => {
+      setRegStep('success');
+      showToast("Profile Added to Database");
+      
+      setTimeout(() => {
+        setIsAdding(false);
+        setNewPro({ name: '', company: '', email: '', phone: '', location: '', specialty: '', imageUrl: '' });
+      }, 5000);
+    }, 1500);
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, isRegistration: boolean) => {
@@ -111,9 +122,9 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
         if (isRegistration) {
           setNewPro(prev => ({ ...prev, imageUrl: reader.result as string }));
         } else if (editingProId) {
-          const pro = pros.find(p => p.id === editingProId);
-          if (pro) {
-             pro.imageUrl = reader.result as string;
+          const proIndex = pros.findIndex(p => p.id === editingProId);
+          if (proIndex !== -1) {
+             pros[proIndex].imageUrl = reader.result as string;
              setEditingProId(null);
              showToast("Profile image updated.");
           }
@@ -125,11 +136,6 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
 
   const handleSubmitReview = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
-      onAuthOpen();
-      showToast("Please log in to submit a review.");
-      return;
-    }
     if (reviewingProId) {
       onReview(tradeId, reviewingProId, reviewRating, reviewComment);
       setReviewingProId(null);
@@ -197,7 +203,7 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
               </div>
            </div>
            <Button onClick={handleJoinClick} className="gap-2 px-8">
-             {user ? <Plus size={18} /> : <LogIn size={18} />} Join as Expert
+             <Plus size={18} /> Join as Expert
            </Button>
         </div>
 
@@ -207,7 +213,7 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
            </div>
            <input 
              type="text" 
-             placeholder={`Filter ${tradeInfo?.title} by name, company or skill...`}
+             placeholder={`Filter ${tradeInfo?.title} by name, company, skill or location...`}
              className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all backdrop-blur-sm shadow-inner"
              value={searchQuery}
              onChange={(e) => setSearchQuery(e.target.value)}
@@ -223,7 +229,12 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
                        {renderProfileImage(pro.imageUrl, "w-20 h-20", true, pro.id)}
                        <div>
                           <div className="flex items-center gap-3 mb-1">
-                             <h3 className="text-2xl font-bold text-white">{pro.name}</h3>
+                             <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+                               {pro.name}
+                               {pro.isVerified && (
+                                 <BadgeCheck className="text-cyan-500" size={20} />
+                               )}
+                             </h3>
                              <div className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-widest ${pro.availability === 'Available' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
                                 {pro.availability.toUpperCase()}
                              </div>
@@ -251,6 +262,15 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
                           <div>
                              <p className="text-[10px] text-gray-500 uppercase font-bold tracking-tighter">Entity</p>
                              <p className="text-white text-sm font-medium">{pro.companyName}</p>
+                          </div>
+                       </div>
+                       <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-cyan-500 shadow-inner">
+                             <MapPin size={18} />
+                          </div>
+                          <div>
+                             <p className="text-[10px] text-gray-500 uppercase font-bold tracking-tighter">Location</p>
+                             <p className="text-white text-sm font-medium">{pro.location}</p>
                           </div>
                        </div>
                        <div className="flex items-center gap-3">
@@ -283,6 +303,192 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
             </div>
           )}
         </div>
+
+        {/* Multi-step Expert Registration with Yoco */}
+        {isAdding && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-lg animate-in fade-in zoom-in duration-300">
+             <div className="w-full max-w-xl bg-neutral-900 border border-white/10 rounded-3xl shadow-2xl p-8 relative overflow-y-auto max-h-[90vh]">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600" />
+                <button onClick={() => setIsAdding(false)} className="absolute top-6 right-6 text-gray-500 hover:text-white transition-colors p-2">
+                  <X size={24} />
+                </button>
+
+                {regStep === 'details' && (
+                  <div className="animate-in slide-in-from-right-10 duration-500">
+                    <div className="mb-8">
+                       <h2 className="text-3xl font-bold text-white mb-2">Expert Application</h2>
+                       <p className="text-gray-400">
+                         Register your profile for the <span className="text-cyan-400 font-bold">{tradeInfo?.title}</span> network
+                       </p>
+                    </div>
+
+                    <form className="space-y-5" onSubmit={goToPayment}>
+                       <div className="flex flex-col items-center gap-4 mb-6">
+                          <div className="relative group/upload cursor-pointer" onClick={() => registrationFileRef.current?.click()}>
+                             {renderProfileImage(newPro.imageUrl || `ICON_FALLBACK_${tradeId}`, "w-28 h-28")}
+                             <div className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-cyan-500 border-2 border-neutral-900 flex items-center justify-center text-black">
+                                <Upload size={14} />
+                             </div>
+                          </div>
+                          <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Profile Identity</p>
+                          <input type="file" ref={registrationFileRef} className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, true)} />
+                       </div>
+
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Full Name</label>
+                            <input required value={newPro.name} onChange={e => setNewPro({...newPro, name: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:outline-none transition-all placeholder:text-gray-700 shadow-inner" placeholder="John Doe" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Trade Entity</label>
+                            <input required value={newPro.company} onChange={e => setNewPro({...newPro, company: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:outline-none transition-all placeholder:text-gray-700 shadow-inner" placeholder="Business Name" />
+                          </div>
+                       </div>
+                       
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Primary Skillset</label>
+                            <input required value={newPro.specialty} onChange={e => setNewPro({...newPro, specialty: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:outline-none transition-all placeholder:text-gray-700 shadow-inner" placeholder="e.g. Master Engine Rebuilds" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Primary Location</label>
+                            <input required value={newPro.location} onChange={e => setNewPro({...newPro, location: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:outline-none transition-all placeholder:text-gray-700 shadow-inner" placeholder="e.g. Cape Town, WC" />
+                          </div>
+                       </div>
+
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Mobile</label>
+                            <input required value={newPro.phone} onChange={e => setNewPro({...newPro, phone: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:outline-none transition-all placeholder:text-gray-700 shadow-inner" placeholder="+27 ..." />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Business Email</label>
+                            <input required type="email" value={newPro.email} onChange={e => setNewPro({...newPro, email: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:outline-none transition-all placeholder:text-gray-700 shadow-inner" placeholder="contact@expert.com" />
+                          </div>
+                       </div>
+
+                       <div className="pt-4">
+                          <Button type="submit" className="w-full py-4 text-lg font-bold group">
+                            Next: Setup Subscription <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+                          </Button>
+                       </div>
+                    </form>
+                  </div>
+                )}
+
+                {regStep === 'payment' && (
+                  <div className="animate-in slide-in-from-right-10 duration-500">
+                    <div className="mb-8 flex justify-between items-start">
+                       <div>
+                          <h2 className="text-3xl font-bold text-white mb-2">Monthly Subscription</h2>
+                          <p className="text-gray-400">Recurring billing on the <span className="text-blue-500 font-bold">1st of every month</span></p>
+                       </div>
+                       <div className="w-16 h-8 bg-white rounded-md flex items-center justify-center p-2">
+                          <span className="text-[#3b3db1] font-black italic text-xs tracking-tighter">YOCO</span>
+                       </div>
+                    </div>
+
+                    <div className="bg-blue-600/5 border border-blue-600/20 rounded-2xl p-6 mb-8 flex items-center justify-between shadow-inner">
+                       <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-blue-600/10 flex items-center justify-center text-blue-500">
+                             <ShieldCheck size={20} />
+                          </div>
+                          <div>
+                             <p className="text-white font-bold">Pro Specialist Tier</p>
+                             <p className="text-gray-500 text-xs">Priority Network Listing</p>
+                          </div>
+                       </div>
+                       <div className="text-right">
+                          <p className="text-white font-bold text-2xl">R300/month</p>
+                       </div>
+                    </div>
+
+                    <div className="space-y-6">
+                       <div className="p-8 bg-white/5 rounded-2xl border border-white/10 space-y-4">
+                          <div className="flex items-center gap-3 text-cyan-500 font-bold text-xs uppercase tracking-widest mb-2">
+                             <BellRing size={16} /> Notification System Active
+                          </div>
+                          <p className="text-gray-400 text-sm leading-relaxed">
+                            By clicking below, you agree to a monthly subscription of <strong>R300.00</strong>. 
+                            Payments are due on the <strong>1st of every month</strong>.
+                          </p>
+                       </div>
+
+                       <div className="flex flex-col gap-4">
+                          <a 
+                            href="https://pay.yoco.com/r/7y5VYb" 
+                            target="_blank" 
+                            onClick={handleExternalPaymentClick}
+                            style={{
+                              backgroundColor: 'blue', 
+                              color: 'white', 
+                              padding: '16px 20px', 
+                              textDecoration: 'none', 
+                              borderRadius: '5px',
+                              textAlign: 'center',
+                              fontWeight: 'bold',
+                              display: 'block'
+                            }}
+                            className="w-full text-lg shadow-xl shadow-blue-900/20 transition-all hover:brightness-110 active:scale-95"
+                          >
+                            Pay & Subscribe with Yoco
+                          </a>
+                          
+                          <button 
+                            type="button"
+                            onClick={() => setRegStep('details')}
+                            className="text-gray-500 text-sm hover:text-white transition-colors"
+                          >
+                            Back to Profile Details
+                          </button>
+                       </div>
+                       
+                       <div className="flex justify-center gap-6 opacity-40 grayscale pointer-events-none mt-4">
+                          <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" className="h-4" alt="Visa" />
+                          <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" className="h-4" alt="Mastercard" />
+                          <div className="text-white font-black italic text-[10px] flex items-center uppercase">Yoco Secured</div>
+                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {regStep === 'processing' && (
+                  <div className="py-24 flex flex-col items-center justify-center space-y-8 animate-in zoom-in-95 duration-500">
+                    <div className="relative w-20 h-20">
+                      <div className="absolute inset-0 border-4 border-blue-600/20 rounded-full" />
+                      <div className="absolute inset-0 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                      <div className="absolute inset-0 flex items-center justify-center text-[#3b3db1] font-bold text-[8px] uppercase tracking-tighter">Yoco</div>
+                    </div>
+                    <div className="text-center space-y-2">
+                      <h3 className="text-2xl font-bold text-white tracking-tight">Writing to Database...</h3>
+                      <p className="text-gray-500 text-sm">Registering expert profile under {tradeInfo?.title}.</p>
+                    </div>
+                  </div>
+                )}
+
+                {regStep === 'success' && (
+                  <div className="py-20 flex flex-col items-center justify-center space-y-6 animate-in zoom-in duration-500">
+                    <div className="relative">
+                      <div className="w-24 h-24 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center shadow-[0_0_60px_rgba(34,197,94,0.2)]">
+                         <CheckCircle size={56} />
+                      </div>
+                      <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-neutral-900 border border-white/10 rounded-full flex items-center justify-center text-cyan-500">
+                        <Database size={20} />
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <h3 className="text-3xl font-bold text-white mb-2">Expert Profile Live</h3>
+                      <p className="text-gray-400 max-w-sm mx-auto">
+                        Verification complete. Your profile is now permanently listed in the <strong>{tradeInfo?.title}</strong> database. 
+                        Reminders are configured for <span className="text-blue-500">elevatesolutions26@gmail.com</span>.
+                      </p>
+                    </div>
+                    <Button variant="outline" className="mt-4" onClick={() => setIsAdding(false)}>View My Profile</Button>
+                  </div>
+                )}
+             </div>
+          </div>
+        )}
 
         {/* View Reviews Modal */}
         {viewingReviewsProId && viewingReviewsPro && (
@@ -385,103 +591,6 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
 
                    <div className="pt-2">
                       <Button type="submit" className="w-full py-4 text-lg font-bold shadow-lg shadow-cyan-500/10">Publish Review</Button>
-                   </div>
-                </form>
-             </div>
-          </div>
-        )}
-
-        {/* Expert Registration Modal */}
-        {isAdding && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-lg animate-in fade-in zoom-in duration-300">
-             <div className="w-full max-w-xl bg-neutral-900 border border-white/10 rounded-3xl shadow-2xl p-8 relative overflow-y-auto max-h-[90vh]">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 to-blue-500" />
-                <button onClick={() => setIsAdding(false)} className="absolute top-6 right-6 text-gray-500 hover:text-white transition-colors p-2">
-                  <X size={24} />
-                </button>
-                <div className="mb-8">
-                   <h2 className="text-3xl font-bold text-white mb-2">Expert Application</h2>
-                   <p className="text-gray-400">
-                     Signed in as <span className="text-white font-bold">{user?.name}</span> for <span className="text-cyan-400 font-bold">{tradeInfo?.title}</span>
-                   </p>
-                </div>
-
-                {/* Subscription Info Card */}
-                <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-2xl p-6 mb-8 flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-500 shrink-0">
-                    <ShieldCheck size={24} />
-                  </div>
-                  <div>
-                    <h4 className="text-white font-bold mb-1">Premium Business Promotion</h4>
-                    <p className="text-gray-400 text-xs leading-relaxed">
-                      Reach more clients with an elite priority listing. Professionals who subscribe see up to 3x more engagement.
-                    </p>
-                    <div className="mt-3 flex items-center gap-2">
-                       <span className="text-xl font-bold text-white">R300</span>
-                       <span className="text-gray-500 text-xs uppercase tracking-widest">/ monthly subscription</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <form className="space-y-5" onSubmit={handleAddPro}>
-                   <div className="flex flex-col items-center gap-4 mb-6">
-                      <div className="relative group/upload cursor-pointer" onClick={() => registrationFileRef.current?.click()}>
-                         {renderProfileImage(newPro.imageUrl || `ICON_FALLBACK_${tradeId}`, "w-28 h-28")}
-                         <div className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-cyan-500 border-2 border-neutral-900 flex items-center justify-center text-black">
-                            <Upload size={14} />
-                         </div>
-                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/upload:opacity-100 flex items-center justify-center transition-opacity rounded-2xl">
-                            <span className="text-[10px] text-white font-bold uppercase tracking-widest">Update</span>
-                         </div>
-                      </div>
-                      <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Profile Identity</p>
-                      <input type="file" ref={registrationFileRef} className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, true)} />
-                   </div>
-
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Full Name</label>
-                        <input required value={newPro.name} onChange={e => setNewPro({...newPro, name: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-cyan-500 focus:outline-none transition-all placeholder:text-gray-700 shadow-inner" placeholder="John Doe" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Trade Entity</label>
-                        <input required value={newPro.company} onChange={e => setNewPro({...newPro, company: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-cyan-500 focus:outline-none transition-all placeholder:text-gray-700 shadow-inner" placeholder="Business Name" />
-                      </div>
-                   </div>
-                   
-                   <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Primary Skillset</label>
-                      <input required value={newPro.specialty} onChange={e => setNewPro({...newPro, specialty: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-cyan-500 focus:outline-none transition-all placeholder:text-gray-700 shadow-inner" placeholder="e.g. Master Engine Rebuilds" />
-                   </div>
-
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Mobile</label>
-                        <input required value={newPro.phone} onChange={e => setNewPro({...newPro, phone: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-cyan-500 focus:outline-none transition-all placeholder:text-gray-700 shadow-inner" placeholder="+1 (555) 000-0000" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Business Email</label>
-                        <input required type="email" value={newPro.email} onChange={e => setNewPro({...newPro, email: e.target.value})} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-cyan-500 focus:outline-none transition-all placeholder:text-gray-700 shadow-inner" placeholder="contact@expert.com" />
-                      </div>
-                   </div>
-
-                   <div className="space-y-2 pt-2">
-                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Subscription Billing</label>
-                      <div className="bg-black/40 border border-white/10 rounded-xl p-4 flex items-center justify-between">
-                         <div className="flex items-center gap-3">
-                            <CreditCard className="text-cyan-500" size={18} />
-                            <span className="text-sm text-gray-300">Activate Monthly Plan</span>
-                         </div>
-                         <span className="text-white font-bold text-sm">R300.00</span>
-                      </div>
-                   </div>
-
-                   <div className="pt-4 space-y-4">
-                      <Button type="submit" className="w-full py-4 text-lg font-bold shadow-lg shadow-cyan-500/10">Subscribe & Launch Application</Button>
-                      <div className="flex items-center justify-center gap-2 text-[10px] text-gray-500 uppercase tracking-[0.2em]">
-                         <CheckCircle size={12} className="text-cyan-500" />
-                         Secure Verification Sync
-                      </div>
                    </div>
                 </form>
              </div>

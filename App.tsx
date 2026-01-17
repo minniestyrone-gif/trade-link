@@ -5,13 +5,11 @@ import { Services } from './components/Services';
 import { Testimonials } from './components/Testimonials';
 import { Footer } from './components/Footer';
 import { TradeDetailsPage } from './components/TradeDetailsPage';
-import { AuthModal } from './components/AuthModal';
 import { TermsPage } from './components/TermsPage';
 import { PrivacyPage } from './components/PrivacyPage';
 import { TradePro, ReviewComment } from './types';
 
-const STORAGE_KEY = 'tradelink_specialists_v2';
-const USER_KEY = 'tradelink_user_session';
+const STORAGE_KEY = 'tradelink_specialists_v3';
 
 const INITIAL_PROS: Record<string, TradePro[]> = {
   auto: [
@@ -22,6 +20,7 @@ const INITIAL_PROS: Record<string, TradePro[]> = {
       companyName: 'Ross Performance & Tuning',
       email: 'mike.ross@rosstuning.com',
       phone: '+1 (555) 123-4567',
+      location: 'New York, NY',
       rating: 4.9,
       reviews: 42,
       availability: 'Available',
@@ -36,42 +35,13 @@ const INITIAL_PROS: Record<string, TradePro[]> = {
       companyName: 'Family Garage',
       email: 'dom@fastfamily.com',
       phone: '+1 (555) 999-0001',
+      location: 'Los Angeles, CA',
       rating: 5.0,
       reviews: 120,
       availability: 'Busy',
       imageUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200&h=200',
       specialty: 'Turbocharging',
       comments: [{ id: 'rc2', user: 'Brian O.', rating: 5, comment: 'Ten second car. Thanks Dom.', date: '2024-03-12' }]
-    }
-  ],
-  electric: [
-    {
-      id: 'e1',
-      name: 'Sarah Connor',
-      trade: 'Electrician',
-      companyName: 'Cyberdyne Electrical',
-      email: 's.connor@cyberdyne.io',
-      phone: '+1 (555) 987-6543',
-      rating: 5.0,
-      reviews: 15,
-      availability: 'Busy',
-      imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=200&h=200',
-      specialty: 'Smart Home Install',
-      comments: [{ id: 'rc3', user: 'Kyle R.', rating: 5, comment: 'Installed my smart locks perfectly.', date: '2024-03-05' }]
-    },
-    {
-      id: 'e2',
-      name: 'Nikola T.',
-      trade: 'Master Electrician',
-      companyName: 'Alternating Current Inc',
-      email: 'nikola@wardenclyffe.com',
-      phone: '+1 (555) 888-7777',
-      rating: 4.8,
-      reviews: 89,
-      availability: 'Available',
-      imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200',
-      specialty: 'High Voltage Grids',
-      comments: [{ id: 'rc4', user: 'Thomas E.', rating: 4, comment: 'A bit unconventional but works!', date: '2024-02-28' }]
     }
   ],
   plumbing: [
@@ -82,28 +52,13 @@ const INITIAL_PROS: Record<string, TradePro[]> = {
       companyName: 'Super Pipes Bros',
       email: 'mario@mushroom.it',
       phone: '+1 (555) 222-3333',
+      location: 'Brooklyn, NY',
       rating: 4.9,
       reviews: 210,
       availability: 'Available',
       imageUrl: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&q=80&w=200&h=200',
       specialty: 'Industrial Sewage',
       comments: [{ id: 'rc5', user: 'Luigi R.', rating: 5, comment: 'No leaks in the castle!', date: '2024-03-01' }]
-    }
-  ],
-  hvac: [
-    {
-      id: 'h1',
-      name: 'Frosty Jack',
-      trade: 'HVAC Specialist',
-      companyName: 'Arctic Breeze',
-      email: 'jack@arctic.com',
-      phone: '+1 (555) 444-5555',
-      rating: 4.7,
-      reviews: 33,
-      availability: 'Available',
-      imageUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=200&h=200',
-      specialty: 'Central Cooling',
-      comments: [{ id: 'rc6', user: 'Jane D.', rating: 5, comment: 'Fixed the AC in 30 mins.', date: '2024-04-01' }]
     }
   ],
   carpentry: [
@@ -114,6 +69,7 @@ const INITIAL_PROS: Record<string, TradePro[]> = {
       companyName: 'Fine Grain Studios',
       email: 'woody@finegrain.io',
       phone: '+1 (555) 777-1111',
+      location: 'Seattle, WA',
       rating: 5.0,
       reviews: 58,
       availability: 'Available',
@@ -129,27 +85,27 @@ type ViewMode = 'home' | 'details' | 'terms' | 'privacy';
 function App() {
   const [view, setView] = useState<ViewMode>('home');
   const [activeTradeId, setActiveTradeId] = useState<string | null>(null);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [user, setUser] = useState<any>(() => {
-    const saved = localStorage.getItem(USER_KEY);
-    return saved ? JSON.parse(saved) : null;
-  });
+  
+  // Specialists state now correctly typed as Record<string, TradePro[]>
   const [specialists, setSpecialists] = useState<Record<string, TradePro[]>>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : INITIAL_PROS;
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.error("Error loading specialists from storage:", e);
+    }
+    return INITIAL_PROS;
   });
 
+  // Effect to sync specialists to localStorage whenever the state changes
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(specialists));
   }, [specialists]);
-
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem(USER_KEY, JSON.stringify(user));
-    } else {
-      localStorage.removeItem(USER_KEY);
-    }
-  }, [user]);
 
   const handleSelectTrade = (tradeId: string) => {
     setActiveTradeId(tradeId);
@@ -163,21 +119,14 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleAuthSuccess = (userData: any) => {
-    setUser(userData);
-    setIsAuthOpen(false);
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-    handleBack();
-  };
-
   const handleAddSpecialist = (tradeId: string, pro: TradePro) => {
-    setSpecialists(prev => ({
-      ...prev,
-      [tradeId]: [pro, ...(prev[tradeId] || [])]
-    }));
+    setSpecialists(prev => {
+      const updatedList = [pro, ...(prev[tradeId] || [])];
+      return {
+        ...prev,
+        [tradeId]: updatedList
+      };
+    });
   };
 
   const handleUpdateProRating = (tradeId: string, proId: string, newRatingValue: number, comment?: string) => {
@@ -193,7 +142,7 @@ function App() {
 
       const newComment: ReviewComment = {
         id: Date.now().toString(),
-        user: user ? user.name : 'Verified Client',
+        user: 'Verified Client',
         rating: newRatingValue,
         comment: comment || 'Service completed successfully.',
         date: new Date().toISOString().split('T')[0]
@@ -216,10 +165,7 @@ function App() {
   return (
     <div className="bg-neutral-950 text-white min-h-screen selection:bg-cyan-500 selection:text-black">
       <Navbar 
-        onAuthOpen={() => setIsAuthOpen(true)} 
         onHome={handleBack}
-        user={user}
-        onLogout={handleLogout}
       />
       
       <main className="transition-all duration-500">
@@ -238,8 +184,6 @@ function App() {
             pros={specialists[activeTradeId] || []}
             onAdd={handleAddSpecialist}
             onReview={handleUpdateProRating}
-            user={user}
-            onAuthOpen={() => setIsAuthOpen(true)}
           />
         )}
 
@@ -250,12 +194,6 @@ function App() {
       <Footer 
         onTermsClick={() => { setView('terms'); window.scrollTo(0, 0); }} 
         onPrivacyClick={() => { setView('privacy'); window.scrollTo(0, 0); }} 
-      />
-      
-      <AuthModal 
-        isOpen={isAuthOpen} 
-        onClose={() => setIsAuthOpen(false)} 
-        onLogin={handleAuthSuccess}
       />
     </div>
   );

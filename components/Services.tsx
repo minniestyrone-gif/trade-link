@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from './ui/Card';
-import { Wrench, Zap, Droplets, Thermometer, Ruler, Paintbrush, Lock, ChevronRight } from 'lucide-react';
+import { Wrench, Droplets, Ruler, ChevronRight } from 'lucide-react';
 
 export const SPECIALIZED_TRADES = [
   {
@@ -12,14 +12,6 @@ export const SPECIALIZED_TRADES = [
     subtitle: 'Engine Diagnostics, Maintenance, Repair',
   },
   {
-    id: 'electric',
-    icon: Zap,
-    color: 'text-yellow-400',
-    bg: 'bg-yellow-500/10',
-    title: 'Electrical Services',
-    subtitle: 'Smart home, Wiring, High voltage',
-  },
-  {
     id: 'plumbing',
     icon: Droplets,
     color: 'text-cyan-400',
@@ -28,36 +20,12 @@ export const SPECIALIZED_TRADES = [
     subtitle: 'Leak detection, Pipe repair, Installation',
   },
   {
-    id: 'hvac',
-    icon: Thermometer,
-    color: 'text-orange-400',
-    bg: 'bg-orange-500/10',
-    title: 'HVAC & Cooling',
-    subtitle: 'AC Repair, Heating installation, Ductwork',
-  },
-  {
     id: 'carpentry',
     icon: Ruler,
     color: 'text-amber-400',
     bg: 'bg-amber-500/10',
     title: 'Master Carpentry',
     subtitle: 'Custom furniture, Framing, Deck building',
-  },
-  {
-    id: 'paint',
-    icon: Paintbrush,
-    color: 'text-purple-400',
-    bg: 'bg-purple-500/10',
-    title: 'Painting & Decor',
-    subtitle: 'Interior, Exterior, Texturing, Wallpaper',
-  },
-  {
-    id: 'lock',
-    icon: Lock,
-    color: 'text-red-400',
-    bg: 'bg-red-500/10',
-    title: 'Locksmith Services',
-    subtitle: 'Emergency lockout, Security install, Rekeying',
   }
 ];
 
