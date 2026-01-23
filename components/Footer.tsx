@@ -1,5 +1,5 @@
 import React from 'react';
-import { Globe, Instagram, Linkedin } from 'lucide-react';
+import { Globe, Instagram, Linkedin, Facebook } from 'lucide-react';
 
 interface FooterProps {
   onTermsClick?: () => void;
@@ -54,6 +54,15 @@ export const Footer: React.FC<FooterProps> = ({ onTermsClick, onPrivacyClick }) 
              className="text-gray-500 hover:text-white transition-colors"
            >
              <XLogo className="w-5 h-5" />
+           </a>
+           <a 
+             href="#" 
+             target="_blank" 
+             rel="noopener noreferrer" 
+             aria-label="Facebook" 
+             className="text-gray-500 hover:text-white transition-colors"
+           >
+             <Facebook className="w-5 h-5" />
            </a>
            <a 
              href="https://www.instagram.com/tradelink_connect?igsh=bHczanFoazU4ZA==" 

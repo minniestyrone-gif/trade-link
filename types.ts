@@ -1,3 +1,4 @@
+
 export interface ReviewComment {
   id: string;
   user: string;
@@ -24,6 +25,7 @@ export interface TradePro {
   comments: ReviewComment[];
   isVerified?: boolean;
   isSubscriptionActive?: boolean;
+  subscriptionExpiry?: string;
 }
 
 export interface Testimonial {

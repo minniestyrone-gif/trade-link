@@ -48,7 +48,7 @@ export const Hero: React.FC<HeroProps> = ({ onFindPro }) => {
          <path d="M400 -100 C 200 300, 300 600, 100 1000" stroke="url(#beam-grad-1)" strokeWidth="1" strokeLinecap="round" className="animate-beam" strokeDasharray="250 1600" style={{ animationDuration: '16s', animationDelay: '-4s' }} />
          <path d="M-100 900 C 50 600, 50 300, -50 0" stroke="url(#beam-grad-1)" strokeWidth="3" strokeLinecap="round" className="animate-beam" strokeDasharray="200 1800" style={{ animationDuration: '20s', animationDelay: '-8s', opacity: 0.3 }} />
          <path d="M1500 0 L 0 900" stroke="url(#beam-grad-2)" strokeWidth="1" strokeLinecap="round" className="animate-beam" strokeDasharray="300 2500" style={{ animationDuration: '22s', animationDelay: '-12s' }} />
-         <path d="M0 0 L 1500 900" stroke="url(#beam-grad-3)" strokeWidth="0.5" strokeLinecap="round" className="animate-beam opacity-20" strokeDasharray="200 2000" style={{ animationDuration: '25s', animationDelay: '-1s' }} />
+         <path d="M0 0 L 1500 900" stroke="url(#beam-grad-3)" strokeWidth="0.5" className="animate-beam opacity-20" strokeDasharray="200 2000" style={{ animationDuration: '25s', animationDelay: '-1s' }} />
          
          {/* Extra accent beams */}
          <path d="M720 -100 Q 800 450 720 1000" stroke="url(#beam-grad-1)" strokeWidth="0.5" strokeLinecap="round" className="animate-beam opacity-40" strokeDasharray="100 3000" style={{ animationDuration: '10s' }} />
@@ -57,17 +57,8 @@ export const Hero: React.FC<HeroProps> = ({ onFindPro }) => {
       <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
         <div className="flex flex-col items-center text-center space-y-12 max-w-4xl mx-auto">
           
-          {/* Top Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-cyan-400 backdrop-blur-md animate-in fade-in slide-in-from-top-4 duration-700">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
-            </span>
-            Elite Network: 128 Pros Online
-          </div>
-          
           {/* Main Headline */}
-          <div className="space-y-6">
+          <div className="space-y-6 pt-12">
             <h1 className="text-5xl md:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 leading-[1.1] animate-in fade-in slide-in-from-bottom-4 duration-1000">
               One-click for <br />
               <span className="text-white">Expert Trades.</span>
@@ -82,7 +73,11 @@ export const Hero: React.FC<HeroProps> = ({ onFindPro }) => {
           
           {/* Centered CTA Button */}
           <div className="flex justify-center w-full animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500">
-            <Button size="lg" className="group px-12 py-5 text-lg shadow-[0_0_30px_rgba(6,182,212,0.3)] hover:shadow-[0_0_50px_rgba(6,182,212,0.5)]" onClick={onFindPro}>
+            <Button 
+              size="lg" 
+              className="group px-12 py-5 text-lg shadow-[0_0_30px_rgba(6,182,212,0.3)] hover:shadow-[0_0_50px_rgba(6,182,212,0.5)]" 
+              onClick={onFindPro}
+            >
               Find a Pro <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>

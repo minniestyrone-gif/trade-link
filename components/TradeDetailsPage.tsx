@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { ArrowLeft, Plus, User, Phone, Mail, Building2, Star, CheckCircle, X, Search, MessageSquare, Calendar, Camera, Upload, CreditCard, ShieldCheck, Lock, ArrowRight, BellRing, BadgeCheck, Database, MapPin } from 'lucide-react';
+import { ArrowLeft, Plus, User, Phone, Mail, Building2, Star, CheckCircle, X, Search, MessageSquare, Calendar, Camera, Upload, CreditCard, ShieldCheck, Lock, ArrowRight, BellRing, BadgeCheck, Database, MapPin, Check, Percent } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Card } from './ui/Card';
 import { TradePro, ReviewComment } from '../types';
@@ -14,15 +14,18 @@ interface TradeDetailsPageProps {
 }
 
 type RegistrationStep = 'details' | 'payment' | 'processing' | 'success';
+type BillingCycle = 'monthly' | 'yearly';
 
 export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onBack, pros, onAdd, onReview }) => {
   const tradeInfo = SPECIALIZED_TRADES.find(t => t.id === tradeId);
   const [isAdding, setIsAdding] = useState(false);
   const [regStep, setRegStep] = useState<RegistrationStep>('details');
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
   const [reviewingProId, setReviewingProId] = useState<string | null>(null);
   const [viewingReviewsProId, setViewingReviewsProId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [toast, setToast] = useState<string | null>(null);
+  const [expiryDate, setExpiryDate] = useState<string>('');
   
   const registrationFileRef = useRef<HTMLInputElement>(null);
   const editFileRef = useRef<HTMLInputElement>(null);
@@ -56,9 +59,14 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
   };
 
   const handleAction = (type: 'call' | 'email', value: string) => {
-    showToast(`Connecting to specialist via ${type}...`);
+    showToast(`Opening ${type === 'email' ? 'Mail App' : 'Dialer'}...`);
     setTimeout(() => {
-      window.location.href = type === 'call' ? `tel:${value}` : `mailto:${value}`;
+      if (type === 'call') {
+        window.location.href = `tel:${value}`;
+      } else {
+        const subject = encodeURIComponent(`Inquiry from Trade Link regarding ${tradeInfo?.title || 'services'}`);
+        window.location.href = `mailto:${value}?subject=${subject}`;
+      }
     }, 500);
   };
 
@@ -73,45 +81,55 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
   };
 
   const handleExternalPaymentClick = () => {
-    // Immediate feedback for the user
+    // 1. Move to processing state immediately
     setRegStep('processing');
     
-    // Simulate sending email notification to the master address
-    console.log("Subscribing expert. Sending reminder notification to: elevatesolutions26@gmail.com");
+    // 2. Calculate Expiry for Database
+    const now = new Date();
+    const expiry = new Date();
+    if (billingCycle === 'yearly') {
+      expiry.setDate(now.getDate() + 365);
+    } else {
+      expiry.setDate(now.getDate() + 30);
+    }
+    const formattedDate = expiry.toLocaleDateString('en-ZA', { year: 'numeric', month: 'long', day: 'numeric' });
+    setExpiryDate(formattedDate);
     
-    // Prepare the pro object with verification flags for database persistence
-    const finalImageUrl = newPro.imageUrl || `ICON_FALLBACK_${tradeId}`;
-    const added: TradePro = {
-      id: Date.now().toString(),
-      name: newPro.name,
-      trade: tradeInfo?.title || 'Specialist',
-      companyName: newPro.company,
-      email: newPro.email,
-      phone: newPro.phone,
-      location: newPro.location,
-      rating: 5.0,
-      reviews: 0,
-      availability: 'Available',
-      imageUrl: finalImageUrl,
-      specialty: newPro.specialty,
-      comments: [],
-      isVerified: true,
-      isSubscriptionActive: true
-    };
+    console.log(`Awaiting payment verification for: ${newPro.email}. Renewal notification set for ${formattedDate} to tradeslinksolutions26@gmail.com`);
     
-    // Persist permanently to the app database via the provided onAdd callback
-    onAdd(tradeId, added);
-
-    // Simulate a brief processing delay before success UI
+    // 3. Simulate a delay for payment "approval"
     setTimeout(() => {
+      const finalImageUrl = newPro.imageUrl || `ICON_FALLBACK_${tradeId}`;
+      const added: TradePro = {
+        id: Date.now().toString(),
+        name: newPro.name,
+        trade: tradeInfo?.title || 'Specialist',
+        companyName: newPro.company,
+        email: newPro.email,
+        phone: newPro.phone,
+        location: newPro.location,
+        rating: 5.0,
+        reviews: 0,
+        availability: 'Available',
+        imageUrl: finalImageUrl,
+        specialty: newPro.specialty,
+        comments: [],
+        isVerified: true,
+        isSubscriptionActive: true,
+        subscriptionExpiry: formattedDate
+      };
+      
+      // ONLY ADD TO WEBSITE ONCE "APPROVED" (End of timeout)
+      onAdd(tradeId, added);
+
       setRegStep('success');
-      showToast("Profile Added to Database");
+      showToast("Payment Approved & Profile Listed");
       
       setTimeout(() => {
         setIsAdding(false);
         setNewPro({ name: '', company: '', email: '', phone: '', location: '', specialty: '', imageUrl: '' });
-      }, 5000);
-    }, 1500);
+      }, 7000);
+    }, 2500);
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, isRegistration: boolean) => {
@@ -176,7 +194,6 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
     <div className="min-h-screen pt-32 pb-20 px-6 bg-neutral-950">
       <input type="file" ref={editFileRef} className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, false)} />
       
-      {/* Toast Notification */}
       {toast && (
         <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[200] bg-cyan-600 text-white px-6 py-3 rounded-full shadow-2xl animate-in slide-in-from-top-10 duration-300 font-bold text-sm">
           {toast}
@@ -229,10 +246,13 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
                        {renderProfileImage(pro.imageUrl, "w-20 h-20", true, pro.id)}
                        <div>
                           <div className="flex items-center gap-3 mb-1">
-                             <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+                             <h3 className="text-2xl font-bold text-white flex items-center gap-2 flex-wrap">
                                {pro.name}
                                {pro.isVerified && (
-                                 <BadgeCheck className="text-cyan-500" size={20} />
+                                 <span className="inline-flex items-center gap-1 bg-cyan-500/10 text-cyan-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-cyan-500/20 uppercase tracking-wider">
+                                    <BadgeCheck size={12} />
+                                    Verified
+                                 </span>
                                )}
                              </h3>
                              <div className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-widest ${pro.availability === 'Available' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
@@ -288,7 +308,9 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
                        <Button variant="ghost" size="sm" className="gap-2 border border-white/5 hover:border-cyan-500/30" onClick={() => setReviewingProId(pro.id)}>
                          <MessageSquare size={16} /> Review
                        </Button>
-                       <Button variant="outline" size="sm" onClick={() => handleAction('email', pro.email)}>Email</Button>
+                       <Button variant="outline" size="sm" className="gap-2" onClick={() => handleAction('email', pro.email)}>
+                         <Mail size={16} className="opacity-70" /> Email
+                       </Button>
                        <Button size="sm" className="shadow-cyan-500/20 shadow-lg" onClick={() => handleAction('call', pro.phone)}>Call Now</Button>
                     </div>
                  </div>
@@ -304,7 +326,6 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
           )}
         </div>
 
-        {/* Multi-step Expert Registration with Yoco */}
         {isAdding && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-lg animate-in fade-in zoom-in duration-300">
              <div className="w-full max-w-xl bg-neutral-900 border border-white/10 rounded-3xl shadow-2xl p-8 relative overflow-y-auto max-h-[90vh]">
@@ -380,43 +401,64 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
                   <div className="animate-in slide-in-from-right-10 duration-500">
                     <div className="mb-8 flex justify-between items-start">
                        <div>
-                          <h2 className="text-3xl font-bold text-white mb-2">Monthly Subscription</h2>
-                          <p className="text-gray-400">Recurring billing on the <span className="text-blue-500 font-bold">1st of every month</span></p>
+                          <h2 className="text-3xl font-bold text-white mb-2">Setup Subscription</h2>
+                          <p className="text-gray-400">Choose a plan that fits your business needs</p>
                        </div>
                        <div className="w-16 h-8 bg-white rounded-md flex items-center justify-center p-2">
                           <span className="text-[#3b3db1] font-black italic text-xs tracking-tighter">YOCO</span>
                        </div>
                     </div>
 
-                    <div className="bg-blue-600/5 border border-blue-600/20 rounded-2xl p-6 mb-8 flex items-center justify-between shadow-inner">
-                       <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-blue-600/10 flex items-center justify-center text-blue-500">
-                             <ShieldCheck size={20} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                       <button 
+                         onClick={() => setBillingCycle('monthly')}
+                         className={`relative p-6 rounded-2xl border transition-all text-left ${billingCycle === 'monthly' ? 'bg-cyan-500/10 border-cyan-500' : 'bg-white/5 border-white/10 hover:border-white/20'}`}
+                       >
+                          <div className="flex justify-between items-start mb-4">
+                             <div className={`w-6 h-6 rounded-full border flex items-center justify-center ${billingCycle === 'monthly' ? 'border-cyan-500 bg-cyan-500 text-black' : 'border-white/20'}`}>
+                                {billingCycle === 'monthly' && <Check size={14} />}
+                             </div>
                           </div>
-                          <div>
-                             <p className="text-white font-bold">Pro Specialist Tier</p>
-                             <p className="text-gray-500 text-xs">Priority Network Listing</p>
+                          <p className="text-white font-bold text-lg">Monthly</p>
+                          <p className="text-white font-black text-2xl mt-1">R300<span className="text-sm font-normal text-gray-400">/mo</span></p>
+                          <p className="text-gray-500 text-xs mt-2">Billed monthly. Cancel anytime.</p>
+                       </button>
+
+                       <button 
+                         onClick={() => setBillingCycle('yearly')}
+                         className={`relative p-6 rounded-2xl border transition-all text-left ${billingCycle === 'yearly' ? 'bg-cyan-500/10 border-cyan-500' : 'bg-white/5 border-white/10 hover:border-white/20'}`}
+                       >
+                          <div className="absolute top-3 right-3 bg-cyan-500 text-black text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter animate-pulse flex items-center gap-1">
+                             <Percent size={10} /> 15% OFF
                           </div>
-                       </div>
-                       <div className="text-right">
-                          <p className="text-white font-bold text-2xl">R300/month</p>
-                       </div>
+                          <div className="flex justify-between items-start mb-4">
+                             <div className={`w-6 h-6 rounded-full border flex items-center justify-center ${billingCycle === 'yearly' ? 'border-cyan-500 bg-cyan-500 text-black' : 'border-white/20'}`}>
+                                {billingCycle === 'yearly' && <Check size={14} />}
+                             </div>
+                          </div>
+                          <p className="text-white font-bold text-lg">Yearly</p>
+                          <div className="mt-1">
+                             <span className="text-gray-500 text-sm line-through mr-2 font-bold">R3600</span>
+                             <p className="text-white font-black text-2xl inline-block">R3060<span className="text-sm font-normal text-gray-400">/yr</span></p>
+                          </div>
+                          <p className="text-gray-500 text-xs mt-2">Effective R255/mo. Save R540 instantly.</p>
+                       </button>
                     </div>
 
                     <div className="space-y-6">
                        <div className="p-8 bg-white/5 rounded-2xl border border-white/10 space-y-4">
                           <div className="flex items-center gap-3 text-cyan-500 font-bold text-xs uppercase tracking-widest mb-2">
-                             <BellRing size={16} /> Notification System Active
+                             <ShieldCheck size={16} /> Secured via Yoco Marketplace
                           </div>
                           <p className="text-gray-400 text-sm leading-relaxed">
-                            By clicking below, you agree to a monthly subscription of <strong>R300.00</strong>. 
-                            Payments are due on the <strong>1st of every month</strong>.
+                            By clicking below, you agree to a {billingCycle} subscription of <strong>{billingCycle === 'monthly' ? 'R300.00' : 'R3060.00'}</strong>. 
+                            Payments are {billingCycle === 'monthly' ? 'billed on the 1st of every month' : 'billed annually'}.
                           </p>
                        </div>
 
                        <div className="flex flex-col gap-4">
                           <a 
-                            href="https://pay.yoco.com/r/7y5VYb" 
+                            href={billingCycle === 'monthly' ? "https://pay.yoco.com/r/7y5VYb" : "https://pay.yoco.com/r/mNXzg5"}
                             target="_blank" 
                             onClick={handleExternalPaymentClick}
                             style={{
@@ -424,14 +466,14 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
                               color: 'white', 
                               padding: '16px 20px', 
                               textDecoration: 'none', 
-                              borderRadius: '5px',
+                              borderRadius: '8px',
                               textAlign: 'center',
                               fontWeight: 'bold',
                               display: 'block'
                             }}
                             className="w-full text-lg shadow-xl shadow-blue-900/20 transition-all hover:brightness-110 active:scale-95"
                           >
-                            Pay & Subscribe with Yoco
+                            Pay {billingCycle === 'monthly' ? 'R300.00' : 'R3060.00'} via Yoco
                           </a>
                           
                           <button 
@@ -446,7 +488,7 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
                        <div className="flex justify-center gap-6 opacity-40 grayscale pointer-events-none mt-4">
                           <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" className="h-4" alt="Visa" />
                           <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" className="h-4" alt="Mastercard" />
-                          <div className="text-white font-black italic text-[10px] flex items-center uppercase">Yoco Secured</div>
+                          <div className="text-white font-black italic text-[10px] flex items-center uppercase">Securely processed by Yoco</div>
                        </div>
                     </div>
                   </div>
@@ -460,8 +502,8 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
                       <div className="absolute inset-0 flex items-center justify-center text-[#3b3db1] font-bold text-[8px] uppercase tracking-tighter">Yoco</div>
                     </div>
                     <div className="text-center space-y-2">
-                      <h3 className="text-2xl font-bold text-white tracking-tight">Writing to Database...</h3>
-                      <p className="text-gray-500 text-sm">Registering expert profile under {tradeInfo?.title}.</p>
+                      <h3 className="text-2xl font-bold text-white tracking-tight">Verifying Payment Approval...</h3>
+                      <p className="text-gray-500 text-sm">Validating transaction for {tradeInfo?.title} specialist entry.</p>
                     </div>
                   </div>
                 )}
@@ -476,11 +518,10 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
                         <Database size={20} />
                       </div>
                     </div>
-                    <div className="text-center">
-                      <h3 className="text-3xl font-bold text-white mb-2">Expert Profile Live</h3>
-                      <p className="text-gray-400 max-w-sm mx-auto">
-                        Verification complete. Your profile is now permanently listed in the <strong>{tradeInfo?.title}</strong> database. 
-                        Reminders are configured for <span className="text-blue-500">elevatesolutions26@gmail.com</span>.
+                    <div className="text-center px-4">
+                      <h3 className="text-3xl font-bold text-white mb-2">Expert Profile Approved</h3>
+                      <p className="text-gray-400 max-w-sm mx-auto leading-relaxed">
+                        Payment confirmed! Your profile is live until <strong>{expiryDate}</strong>.
                       </p>
                     </div>
                     <Button variant="outline" className="mt-4" onClick={() => setIsAdding(false)}>View My Profile</Button>
@@ -490,7 +531,6 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
           </div>
         )}
 
-        {/* View Reviews Modal */}
         {viewingReviewsProId && viewingReviewsPro && (
           <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/95 backdrop-blur-lg animate-in fade-in duration-300">
              <div className="w-full max-w-2xl bg-neutral-900 border border-white/10 rounded-3xl shadow-2xl p-8 relative flex flex-col max-h-[80vh]">
@@ -540,7 +580,6 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
           </div>
         )}
 
-        {/* Review Modal */}
         {reviewingProId && reviewingPro && (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/95 backdrop-blur-lg animate-in fade-in zoom-in duration-300">
              <div className="w-full max-w-md bg-neutral-900 border border-white/10 rounded-3xl shadow-2xl p-8 relative">
