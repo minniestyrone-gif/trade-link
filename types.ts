@@ -1,10 +1,14 @@
-
 export interface ReviewComment {
   id: string;
   user: string;
   rating: number;
   comment: string;
   date: string;
+}
+
+export interface TradeProAnalytics {
+  views: number;
+  contacts: number;
 }
 
 export interface TradePro {
@@ -19,6 +23,7 @@ export interface TradePro {
   reviews: number;
   hourlyRate?: number;
   fixedPriceStart?: number;
+  averageRate?: string;
   availability: 'Available' | 'Busy' | 'Offline';
   imageUrl: string;
   specialty: string;
@@ -26,6 +31,7 @@ export interface TradePro {
   isVerified?: boolean;
   isSubscriptionActive?: boolean;
   subscriptionExpiry?: string;
+  analytics: TradeProAnalytics;
 }
 
 export interface Testimonial {
