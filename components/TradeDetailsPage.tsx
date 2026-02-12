@@ -491,7 +491,24 @@ export const TradeDetailsPage: React.FC<TradeDetailsPageProps> = ({ tradeId, onB
                           <p className="text-gray-400 text-sm leading-relaxed">By clicking below, you agree to a {billingCycle} subscription. Payments are {billingCycle === 'monthly' ? 'billed on the 1st of every month' : 'billed annually'}.</p>
                        </div>
                        <div className="flex flex-col gap-4">
-                          <a href={billingCycle === 'monthly' ? "https://pay.yoco.com/r/7y5VYb" : "https://pay.yoco.com/r/mNXzg5"} target="_blank" onClick={handleExternalPaymentClick} style={{backgroundColor: 'blue', color: 'white', padding: '16px 20px', textDecoration: 'none', borderRadius: '8px', textAlign: 'center', fontWeight: 'bold', display: 'block'}} className="w-full text-lg shadow-xl shadow-blue-900/20 transition-all hover:brightness-110 active:scale-95">Pay via Yoco</a>
+                          <a 
+                            href={billingCycle === 'monthly' ? "https://pay.yoco.com/r/mR9RLL" : "https://pay.yoco.com/r/2QapdA"} 
+                            target="_blank" 
+                            onClick={handleExternalPaymentClick} 
+                            style={{
+                              backgroundColor: 'blue', 
+                              color: 'white', 
+                              padding: '10px 20px', 
+                              textDecoration: 'none', 
+                              borderRadius: '5px', 
+                              textAlign: 'center', 
+                              fontWeight: 'bold', 
+                              display: 'block'
+                            }} 
+                            className="w-full text-lg shadow-xl shadow-blue-900/20 transition-all hover:brightness-110 active:scale-95"
+                          >
+                            Pay {billingCycle === 'monthly' ? 'R300.00' : 'R3060.00'} via Yoco
+                          </a>
                           <button type="button" onClick={() => setRegStep('details')} className="text-gray-500 text-sm hover:text-white transition-colors text-center">Back to Profile Details</button>
                        </div>
                     </div>
